@@ -4,7 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import com.example.mastermind.GameActivity
+import com.example.mastermind.game.view.GameActivity
 import com.example.mastermind.R
 import com.example.mastermind.constants.GAME_ID_KEY
 import com.example.mastermind.constants.GAME_NAME_KEY
@@ -52,7 +52,6 @@ class IntroActivity : AppCompatActivity() {
         intent.putExtra(GAME_NAME_KEY, gameName)
         intent.putExtra(USER_NAME_KEY, userName)
         startActivity(intent)
-
     }
 
     private fun task(gameName: String) = {

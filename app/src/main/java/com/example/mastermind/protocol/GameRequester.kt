@@ -8,15 +8,19 @@ interface GameRequester{
     fun createGame(gameName: String, blockingStub: GreeterGrpc.GreeterBlockingStub): GameDescription
     fun getGamesByName(gameName: String, blockingStub: GreeterGrpc.GreeterBlockingStub): GamesByName
     fun joinGame(userName: String, gameId: UUID, blockingStub: GreeterGrpc.GreeterBlockingStub): Player
-    fun keepAlive(player: Player, asynchStub: GreeterGrpc.GreeterStub)
+    fun keepAlive(player: Player, asynchStub: GreeterGrpc.GreeterStub, onOpponentLeftRoom: OnOpponentLeftRoomTask): TimerTask
 }
 
+typealias OnOpponentLeftRoomTask = (Player) -> Unit
+
 class GameRequesterImpl: GameRequester{
-    override fun keepAlive(player: Player, asynchStub: GreeterGrpc.GreeterStub) {
+
+
+    override fun keepAlive(player: Player, asynchStub: GreeterGrpc.GreeterStub, onOpponentLeftRoom: OnOpponentLeftRoomTask): TimerTask {
         var shouldFinish = false
         val keepAliveObserver = asynchStub.keepAlive(object :StreamObserver<Player>{
             override fun onNext(value: Player) {
-                println("Player: ${value.playerName} has exited the room")
+                onOpponentLeftRoom(value)
                 shouldFinish = true
             }
 
@@ -31,17 +35,19 @@ class GameRequesterImpl: GameRequester{
         })
 
         val timer = Timer()
-        timer.schedule(object: TimerTask(){
+        val task = object: TimerTask() {
             override fun run() {
-                if(shouldFinish){
+                if (shouldFinish) {
                     keepAliveObserver.onCompleted()
                     this.cancel()
-                }
-                else{
+                } else {
                     keepAliveObserver.onNext(player)
                 }
             }
-        }, 0, 1000)
+
+        }
+        timer.schedule(task, 0, 1000)
+        return task
     }
 
     private fun getGamesRequest(gameName: String) =

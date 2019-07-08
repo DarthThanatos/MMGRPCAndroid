@@ -7,7 +7,7 @@ import android.util.Log
 import android.view.View
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.mastermind.GameActivity
+import com.example.mastermind.game.view.GameActivity
 import com.example.mastermind.R
 import com.example.mastermind.constants.*
 import com.example.mastermind.gamesList.presenter.GamesListPresenter

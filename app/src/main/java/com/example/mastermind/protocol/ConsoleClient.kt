@@ -14,9 +14,6 @@ private val userInteraction = UserInteractionImpl()
 private val verifier = VerifierImpl()
 private val guesser = GuesserImpl()
 
-/**
- * A simple client that requests a greeting from the [MasterMindServer].
- */
 class MasterMindClient
 /** Construct client for accessing RouteGuide server using the existing channel.  */
 internal constructor(private val channel: ManagedChannel):
@@ -58,12 +55,17 @@ internal constructor(private val channel: ManagedChannel):
 
 
         @JvmStatic
+        private fun onOpponentLeftRoomDefault(opponent: Player){
+            println("Player: ${opponent.playerName} has exited the room")
+        }
+
+        @JvmStatic
         private fun verifier(player:Player, client: MasterMindClient){
             val msg = "please type a 4-letter combination of colors to guess by your opponent"
             val colorsArray = client.getSecretCombination(player.playerName, msg)
             println("Waiting for guesser to arrive")
             val opponent = client.waitForGuesser(colorsArray, player, client.blockingStub)
-            client.keepAlive(player, client.asynchStub)
+            client.keepAlive(player, client.asynchStub, ::onOpponentLeftRoomDefault)
             println("Guesser has arrived: ${opponent.playerName}, ${opponent.playerId}, ${opponent.role}, ${opponent.gameId}")
             val latch = CountDownLatch(1)
             val verifyLogMsg = "please type a 4-letter combination of verification markers"
@@ -75,7 +77,7 @@ internal constructor(private val channel: ManagedChannel):
         private fun guesser(player: Player, client: MasterMindClient){
             println("Waiting for verifier to arrive")
             val opponent = client.waitForVerifier(player, client.blockingStub)
-            client.keepAlive(player, client.asynchStub)
+            client.keepAlive(player, client.asynchStub, ::onOpponentLeftRoomDefault)
             println("Verifier has arrived: ${opponent.playerName}, ${opponent.playerId}, ${opponent.role}, ${opponent.gameId}")
             while (true){
                 val msg = "please type a 4-letter combination of colors"
