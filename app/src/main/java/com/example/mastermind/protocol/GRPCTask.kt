@@ -2,11 +2,9 @@ package com.example.mastermind.protocol
 
 import android.app.Activity
 import android.os.AsyncTask
-import android.widget.TextView
 import com.example.mastermind.GreeterGrpc
 import com.example.mastermind.HelloRequest
-import com.example.mastermind.IntroActivity
-import com.example.mastermind.R
+import com.example.mastermind.intro.view.IntroActivity
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import io.grpc.StatusRuntimeException

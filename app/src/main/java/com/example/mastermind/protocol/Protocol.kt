@@ -6,6 +6,8 @@ import io.grpc.ManagedChannelBuilder
 import server.GreeterGrpc
 import java.util.concurrent.TimeUnit
 
+typealias TaskFunction<T> = (blockingStub: GreeterGrpc.GreeterBlockingStub, asynchStub: GreeterGrpc.GreeterStub) -> T
+
 private val gameRequester = GameRequesterImpl()
 //private val verifier = VerifierImpl()
 //private val guesser = GuesserImpl()
@@ -44,8 +46,9 @@ class Protocol internal constructor(private val channel: ManagedChannel):
 
     }
 
+
     fun <T> runInBackground(
-        task: (blockingStub: GreeterGrpc.GreeterBlockingStub, asynchStub: GreeterGrpc.GreeterStub) -> T,
+        task: TaskFunction<T>,
         onResult: (result: T) -> Unit
     ){
         Task(blockingStub, asynchStub, task, onResult).execute()

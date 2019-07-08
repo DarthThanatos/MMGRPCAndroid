@@ -7,7 +7,7 @@ import java.util.*
 interface GameRequester{
     fun createGame(gameName: String, blockingStub: GreeterGrpc.GreeterBlockingStub): GameDescription
     fun getGamesByName(gameName: String, blockingStub: GreeterGrpc.GreeterBlockingStub): GamesByName
-    fun joinGame(userName: String, gameDescription: GameDescription, blockingStub: GreeterGrpc.GreeterBlockingStub): Player
+    fun joinGame(userName: String, gameId: UUID, blockingStub: GreeterGrpc.GreeterBlockingStub): Player
     fun keepAlive(player: Player, asynchStub: GreeterGrpc.GreeterStub)
 }
 
@@ -60,13 +60,13 @@ class GameRequesterImpl: GameRequester{
     override fun createGame(gameName: String, blockingStub: GreeterGrpc.GreeterBlockingStub) =
         blockingStub.createGame(newGameRequest(gameName))
 
-    private fun newJoinRequest(userName: String, gameDescription: GameDescription) =
+    private fun newJoinRequest(userName: String, gameId: UUID) =
         Player.newBuilder()
             .setPlayerName(userName)
-            .setGameId(gameDescription.gameId)
+            .setGameId(gameId.toString())
             .build()
 
-    override fun joinGame(userName: String, gameDescription: GameDescription, blockingStub: GreeterGrpc.GreeterBlockingStub) =
-        blockingStub.joinGame(newJoinRequest(userName, gameDescription))
+    override fun joinGame(userName: String, gameId: UUID, blockingStub: GreeterGrpc.GreeterBlockingStub) =
+        blockingStub.joinGame(newJoinRequest(userName, gameId))
 
 }

@@ -11,9 +11,11 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
+        <activity android:name=".GameActivity">
+        </activity>
         <activity android:name=".gamesList.view.ExistingGamesActivity">
         </activity>
-        <activity android:name=".IntroActivity">
+        <activity android:name=".intro.view.IntroActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

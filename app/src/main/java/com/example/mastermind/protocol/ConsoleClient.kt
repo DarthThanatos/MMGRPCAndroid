@@ -3,6 +3,7 @@ package com.example.mastermind.protocol
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import server.*
+import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -99,7 +100,7 @@ internal constructor(private val channel: ManagedChannel):
                 val gameDescription =
                     if (shouldCreate)client.createGame(gameName, client.blockingStub)
                     else probeGameDescription(userName, gameName, client)
-                val player = client.joinGame(userName, gameDescription, client.blockingStub)
+                val player = client.joinGame(userName, UUID.fromString(gameDescription.gameId), client.blockingStub)
                 println("${player.playerName}, ${player.playerId}, ${player.role}, ${player.gameId}")
                 if (player.role == Role.VERIFIER) verifier(player, client)
                 else guesser(player, client)

@@ -1,10 +1,9 @@
 apply plugin: 'com.android.application'
-
 apply plugin: 'kotlin-android'
-
 apply plugin: 'kotlin-android-extensions'
-
 apply plugin: 'com.google.protobuf'
+
+
 def grpcVersion = '1.21.0'
 //def reactiveGrpcVersion = '0.10.0'
 

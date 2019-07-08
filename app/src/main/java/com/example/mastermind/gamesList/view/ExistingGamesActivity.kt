@@ -1,27 +1,30 @@
 package com.example.mastermind.gamesList.view
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.mastermind.GameActivity
 import com.example.mastermind.R
-import com.example.mastermind.constants.GAME_NAME_KEY
-import com.example.mastermind.constants.HOST_NAME_KEY
-import com.example.mastermind.constants.USER_NAME_KEY
+import com.example.mastermind.constants.*
 import com.example.mastermind.gamesList.presenter.GamesListPresenter
 import com.example.mastermind.gamesList.presenter.GamesListPresenterImpl
 import kotlinx.android.synthetic.main.activity_existing_games.*
+import server.GameDescription
 import server.GamesByName
+import java.util.*
 
 interface ExisitingGamesView{
     fun turnOnProgress()
     fun turnOffProgress()
+    fun askIfShouldJoinGame(gameDescription: GameDescription)
     fun displayGames(gamesByName: GamesByName)
 }
 
-class ExistingGamesActivity : AppCompatActivity(), ExisitingGamesView {
+class ExistingGamesActivity : AppCompatActivity(), ExisitingGamesView, JoinGameDialog.JoinGameDialogListener {
 
     private lateinit var presenter: GamesListPresenter
 
@@ -50,7 +53,7 @@ class ExistingGamesActivity : AppCompatActivity(), ExisitingGamesView {
         gamesListView.layoutManager = linearLayoutManager
         val decorator = DividerItemDecoration(this, linearLayoutManager.orientation)
         gamesListView.addItemDecoration(decorator)
-        gamesListView.adapter = GamesListAdapter(gamesByName)
+        gamesListView.adapter = GamesListAdapter(gamesByName, this)
     }
 
     override fun turnOnProgress() {
@@ -59,6 +62,23 @@ class ExistingGamesActivity : AppCompatActivity(), ExisitingGamesView {
 
     override fun turnOffProgress() {
         gamesListProgressBar.visibility = View.INVISIBLE
+    }
+
+    override fun onDialogPositiveClick(gameId: UUID) {
+        val userName = intent.getStringExtra(USER_NAME_KEY)
+        val hostName = intent.getStringExtra(HOST_NAME_KEY)
+        val gameName = intent.getStringExtra(GAME_NAME_KEY)
+        val gameIntent = Intent(this, GameActivity::class.java)
+        gameIntent.putExtra(HOST_NAME_KEY, hostName)
+        gameIntent.putExtra(GAME_NAME_KEY, gameName)
+        gameIntent.putExtra(USER_NAME_KEY, userName)
+        gameIntent.putExtra(GAME_ID_KEY, gameId.toString())
+        startActivity(gameIntent)
+    }
+
+    override fun askIfShouldJoinGame(gameDescription: GameDescription) {
+        val newFragmentDialog = JoinGameDialog(gameDescription)
+        newFragmentDialog.show(supportFragmentManager, JOIN_GAME_TAG)
     }
 
 }
