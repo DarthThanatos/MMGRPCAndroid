@@ -36,6 +36,7 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
 
     override fun joinGame() {
         Log.d(GamePresenter::class.java.simpleName, "Joining game named: $gameName")
+        view?.showWaitingProgress()
         protocol?.runInBackground(
             task = joinGameTask(),
             onResult = onJoinedGame()
@@ -66,7 +67,7 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
     private fun waitForVerifier(player: Player){
         protocol?.runInBackground(
             task = waitForVerifierTask(player),
-            onResult = onOpponentArrived()
+            onResult = onVerifierArrived()
         )
 
     }
@@ -74,7 +75,7 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
     private fun waitForGuesser(player: Player, combinationArr: Array<Color>){
         protocol?.runInBackground(
             task = waitForGuesserTask(player, combinationArr),
-            onResult = onOpponentArrived()
+            onResult = onGuesserArrived()
         )
     }
 
@@ -91,10 +92,25 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
 
     }
 
-    private fun onOpponentArrived() = {
+    private fun onVerifierArrived() = {
         opponent: Player ->
-            view?.informOpponentJoinedGame(opponent)
-                ?: throw IllegalStateException("View not initialized. Did you forgot to call attachView?")
+            view?.apply {
+                informOpponentJoinedGame(opponent)
+                hideWaitingProgress()
+                displayGuesserBoard()
+            } ?: throw IllegalStateException("View not initialized. Did you forgot to call attachView?")
+        Log.d(GamePresenter::class.java.simpleName, "Verifier arrived")
+        Unit.also {  }
+    }
+
+    private fun onGuesserArrived() = {
+        opponent: Player ->
+            view?.apply {
+                informOpponentJoinedGame(opponent)
+                hideWaitingProgress()
+                displayVerifierBoard()
+            }?: throw IllegalStateException("View not initialized. Did you forgot to call attachView?")
+        Unit.apply {  }
     }
 
 

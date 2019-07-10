@@ -44,7 +44,6 @@ class GameRequesterImpl: GameRequester{
                     keepAliveObserver.onNext(player)
                 }
             }
-
         }
         timer.schedule(task, 0, 1000)
         return task

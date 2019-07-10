@@ -1,7 +1,6 @@
 package com.example.mastermind.protocol
 
 import android.os.AsyncTask
-import android.util.Log
 import io.grpc.ManagedChannel
 import io.grpc.ManagedChannelBuilder
 import server.GreeterGrpc

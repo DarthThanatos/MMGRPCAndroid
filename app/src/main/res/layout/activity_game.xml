@@ -6,5 +6,19 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".game.view.GameActivity">
+    <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="8dp" app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginStart="8dp"
+            app:layout_constraintTop_toTopOf="@+id/verifierBoardView" android:layout_marginBottom="8dp"
+            app:layout_constraintBottom_toBottomOf="@+id/verifierBoardView" android:id="@+id/waiting_progress_bar"/>
+    <com.example.mastermind.game.view.GuesserBoardViewImpl
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" android:visibility="invisible" android:id="@+id/guesserBoardView"/>
+    <com.example.mastermind.game.view.VerifierBoardViewImpl
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" android:id="@+id/verifierBoardView"
+            android:visibility="invisible"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
