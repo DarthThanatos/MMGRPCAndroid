@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.mastermind.game.view.GameActivity
 import com.example.mastermind.R
-import com.example.mastermind.constants.*
+import com.example.mastermind.util.*
 import com.example.mastermind.gamesList.presenter.GamesListPresenter
 import com.example.mastermind.gamesList.presenter.GamesListPresenterImpl
 import kotlinx.android.synthetic.main.activity_existing_games.*

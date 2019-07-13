@@ -5,10 +5,10 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import com.example.mastermind.R
-import com.example.mastermind.constants.GAME_ID_KEY
-import com.example.mastermind.constants.GAME_NAME_KEY
-import com.example.mastermind.constants.HOST_NAME_KEY
-import com.example.mastermind.constants.USER_NAME_KEY
+import com.example.mastermind.util.GAME_ID_KEY
+import com.example.mastermind.util.GAME_NAME_KEY
+import com.example.mastermind.util.HOST_NAME_KEY
+import com.example.mastermind.util.USER_NAME_KEY
 import com.example.mastermind.game.presenter.GamePresenter
 import com.example.mastermind.game.presenter.GamePresenterImpl
 import kotlinx.android.synthetic.main.activity_game.*

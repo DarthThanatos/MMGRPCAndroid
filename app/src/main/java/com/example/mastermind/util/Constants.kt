@@ -1,4 +1,4 @@
-package com.example.mastermind.constants
+package com.example.mastermind.util
 
 val HOST_NAME_KEY = "host_name"
 val GAME_NAME_KEY = "game_name"

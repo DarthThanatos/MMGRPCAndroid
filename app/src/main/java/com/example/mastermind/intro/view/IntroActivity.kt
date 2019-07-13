@@ -6,10 +6,10 @@ import android.os.Bundle
 import android.view.View
 import com.example.mastermind.game.view.GameActivity
 import com.example.mastermind.R
-import com.example.mastermind.constants.GAME_ID_KEY
-import com.example.mastermind.constants.GAME_NAME_KEY
-import com.example.mastermind.constants.HOST_NAME_KEY
-import com.example.mastermind.constants.USER_NAME_KEY
+import com.example.mastermind.util.GAME_ID_KEY
+import com.example.mastermind.util.GAME_NAME_KEY
+import com.example.mastermind.util.HOST_NAME_KEY
+import com.example.mastermind.util.USER_NAME_KEY
 import com.example.mastermind.gamesList.view.ExistingGamesActivity
 import com.example.mastermind.protocol.Protocol
 import kotlinx.android.synthetic.main.activity_intro.*
