@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
+import android.widget.Toast
 import server.Color
 
 interface VerifierBoardView{
@@ -17,6 +18,14 @@ class VerifierBoardViewImpl(context: Context, attrSet: AttributeSet): View(conte
     private val paint = Paint()
     private val screenCalculator = ScreenCalculator(context as Activity)
     private val config = GameDisplayConfig(screenCalculator.screenWidth, screenCalculator.screenHeight)
+
+    init{
+        setOnTouchListener(OnColorTouchListener(config, 0, this::onColorTouched) { 0 })
+    }
+
+    private fun onColorTouched(j: Int){
+        Toast.makeText(context, "touched color number: $j", Toast.LENGTH_LONG).show()
+    }
 
     override fun getSecretCombinationColorArr(): Array<Color> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
