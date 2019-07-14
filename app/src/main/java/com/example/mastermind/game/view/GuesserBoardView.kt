@@ -2,49 +2,37 @@ package com.example.mastermind.game.view
 
 import android.app.Activity
 import android.content.Context
-import android.graphics.Canvas
+import android.content.res.Resources
+import android.graphics.*
 import android.graphics.Color.BLACK
-import android.graphics.Paint
-import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
-import android.widget.Toast
 import com.example.mastermind.R
+import com.example.mastermind.game.presenter.GamePresenter
 import server.Color
-import kotlin.properties.Delegates
 
-interface GuesserBoardView{
-    fun getCombinationColorArr(): Array<Color>
-    fun displayCombinations(previousCombinations: Array<Color>)
-}
 
-class GuesserBoardViewImpl(context: Context, attrSet: AttributeSet): View(context, attrSet), GuesserBoardView{
+class GuesserBoardViewImpl(context: Context, attrSet: AttributeSet): View(context, attrSet), GameBoardProvider{
 
-    override fun displayCombinations(previousCombinations: Array<Color>) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun getCombinationColorArr(): Array<Color> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun refresh() {
+        invalidate()
     }
 
     private val paint = Paint()
     private val screenCalculator = ScreenCalculator(context as Activity)
     private val config = GameDisplayConfig(screenCalculator.screenWidth, screenCalculator.screenHeight)
+    override fun config(): GameDisplayConfig = config
 
-    private var currentRow by Delegates.observable(0){
-        _, _, _ -> invalidate()
+    override fun resources(): Resources = resources
+    override fun touchOffset(): Int = config.widthForVerification.toInt()
+    override fun presenter(): GamePresenter? = (context as GameView).presenter()
+
+
+    private val listener = OnBoardTouchListener(this)
+
+    fun activate(){
+        setOnTouchListener(listener)
     }
-
-    init{
-        setOnTouchListener(OnColorTouchListener(config, config.widthForVerification.toInt(), this::onColorTouched) { currentRow })
-    }
-
-    private fun onColorTouched(j: Int){
-        Toast.makeText(context, "touched color number: $j", Toast.LENGTH_LONG).show()
-        currentRow = if(currentRow <14) currentRow + 1 else 0
-    }
-
 
     private fun drawDividingLines(canvas: Canvas?){
         canvas?.apply {
@@ -112,23 +100,14 @@ class GuesserBoardViewImpl(context: Context, attrSet: AttributeSet): View(contex
         }
     }
 
-    private fun drawCurrentRowRect(canvas: Canvas?){
-        canvas?.apply {
-            config.apply {
-                paint.color = android.graphics.Color.CYAN
-                val left = 0.0f
-                val top = (MARGIN_FROM_BORDER + rowHeight + MARGIN_TO_VERIFIER_ROW + (15 - currentRow - 1) * (rowHeight + MARGIN_BETWEEN_ROWS)).toFloat()
-                val right = screenWidth.toFloat()
-                val bottom = top + 2 * choiceRadius
-                drawRect(left, top, right, bottom, paint)
-            }
-        }
-    }
 
     override fun onDraw(canvas: Canvas?) {
-        drawCurrentRowRect(canvas)
+//        touchResponder?.displayCurrentRow(canvas, paint)
         drawGuessingArea(canvas)
         drawVerificationArea(canvas)
         drawDividingLines(canvas)
+//        touchResponder?.displayColorSelection(canvas)
     }
+
+
 }

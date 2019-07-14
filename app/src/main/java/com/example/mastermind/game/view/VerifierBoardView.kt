@@ -2,34 +2,72 @@ package com.example.mastermind.game.view
 
 import android.app.Activity
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Canvas
+import android.graphics.Color.GRAY
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
-import android.widget.Toast
-import server.Color
+import com.example.mastermind.game.presenter.GamePresenter
+import kotlin.properties.Delegates
+import kotlin.reflect.KProperty
 
-interface VerifierBoardView{
-    fun getSecretCombinationColorArr(): Array<Color>
-}
+class VerifierBoardViewImpl(context: Context, attrSet: AttributeSet): View(context, attrSet),
+    GameBoardProvider {
 
-class VerifierBoardViewImpl(context: Context, attrSet: AttributeSet): View(context, attrSet), VerifierBoardView{
+    override fun refresh() {
+        invalidate()
+    }
 
     private val paint = Paint()
     private val screenCalculator = ScreenCalculator(context as Activity)
     private val config = GameDisplayConfig(screenCalculator.screenWidth, screenCalculator.screenHeight)
+    override fun config(): GameDisplayConfig = config
 
-    init{
-        setOnTouchListener(OnColorTouchListener(config, 0, this::onColorTouched) { 0 })
+    override fun presenter(): GamePresenter? = (context as GameView).presenter()
+    override fun resources(): Resources = resources
+    override fun touchOffset(): Int = 0
+
+    private var verificationsSoFar by Delegates.observable(listOf<Array<Int>>(), this::onFieldChanged)
+    private var guessedColorsSoFar by Delegates.observable(listOf<Array<Int>>(), this::onFieldChanged)
+    private var secretCombinationColors by Delegates.observable(intArrayOf(GRAY, GRAY, GRAY, GRAY), this::onFieldChanged)
+
+    private val listener = OnBoardTouchListener(this)
+
+    fun activate(){
+        setOnTouchListener(listener)
+        val secretSelectionTouchableAreas = secretSelectionTouchableAreas()
+        listener.touchableAreas = secretSelectionTouchableAreas
     }
 
-    private fun onColorTouched(j: Int){
-        Toast.makeText(context, "touched color number: $j", Toast.LENGTH_LONG).show()
+    private fun secretSelectionTouchableAreas(): MutableList<OnBoardTouchListener.TouchableArea>{
+        val secretSelectionTouchableAreas = mutableListOf<OnBoardTouchListener.TouchableArea>()
+        for (j in 0 until 4){
+            val centerOfColorSelector = CenterOfColorSelector(this, 0, j, 0)
+            val leftColorSelector = SecretCombinationLeftColorSelector(this, 0, j, 0, centerOfColorSelector)
+            val rightColorSelector = SecretCombinationRightColorSelector(this, 0, j, 0, centerOfColorSelector)
+            val compundSelector = CombinationSelector(leftColorSelector, rightColorSelector, centerOfColorSelector)
+            secretSelectionTouchableAreas.add(compundSelector)
+        }
+        return secretSelectionTouchableAreas
     }
 
-    override fun getSecretCombinationColorArr(): Array<Color> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    fun showAcceptSecretCombinationView(){
+        val secretSelectionTouchableAreas = listener.touchableAreas.filter { it !is AcceptSecretCombinationView }.toMutableList()
+        secretSelectionTouchableAreas.add(AcceptSecretCombinationView(this))
+        listener.touchableAreas = secretSelectionTouchableAreas
     }
+
+    fun hideAcceptSecretCombinationView(){
+        val secretSelectionTouchableAreas = listener.touchableAreas.filter { it !is AcceptSecretCombinationView }.toMutableList()
+        listener.touchableAreas = secretSelectionTouchableAreas
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    private fun <T> onFieldChanged(prop: KProperty<*>, old: T, new: T){
+        invalidate()
+    }
+
 
     private fun drawDividingLines(canvas: Canvas?){
         canvas?.apply {
@@ -51,6 +89,9 @@ class VerifierBoardViewImpl(context: Context, attrSet: AttributeSet): View(conte
                         val additionalSeparator = if(i == 15) MARGIN_TO_VERIFIER_ROW - MARGIN_BETWEEN_ROWS else 0
                         val cx: Float = spaceBetweenColors * (j + 1) + j * rowHeight + choiceRadius
                         val cy: Float = MARGIN_FROM_BORDER + additionalSeparator + (MARGIN_BETWEEN_ROWS + rowHeight) * i + choiceRadius
+                        if(i == 15){
+                            paint.color = secretCombinationColors[j]
+                        }
                         drawCircle(cx, cy, choiceRadius, paint)
                     }
                 }
@@ -77,10 +118,16 @@ class VerifierBoardViewImpl(context: Context, attrSet: AttributeSet): View(conte
         }
     }
 
+    fun updateSecretElements(elements: Array<Int>) {
+        secretCombinationColors = elements.copyOf().toIntArray()
+    }
+
     override fun onDraw(canvas: Canvas?) {
         drawGuessingArea(canvas)
         drawVerificationArea(canvas)
         drawDividingLines(canvas)
+        for(touchableArea in listener.touchableAreas){
+            touchableArea.display(canvas)
+        }
     }
-
 }

@@ -11,6 +11,7 @@ val TOTAL_MARGIN = 2 * MARGIN_FROM_BORDER + (ROWS_AMOUNT - 2) * MARGIN_BETWEEN_R
 val SPACES_NUMBER_IN_COLOR_AREA = 5 // 3 between colors + 1 at start + 1 at the end
 
 data class GameDisplayConfig(val screenWidth: Int, val screenHeight: Int){
+
     val rowHeight = (screenHeight - TOTAL_MARGIN) / ROWS_AMOUNT
     val choiceRadius = 0.5f * rowHeight
 
@@ -27,4 +28,17 @@ data class GameDisplayConfig(val screenWidth: Int, val screenHeight: Int){
 
     private val widthForChoices = COLORS_NUMBER * rowHeight
     val spaceBetweenColors = (widthForColors - widthForChoices) / SPACES_NUMBER_IN_COLOR_AREA
+
+    fun getGuesserYRowBoundriesFromRowIndex(row: Int): Pair<Float, Float> {
+        val top = (MARGIN_FROM_BORDER + rowHeight + MARGIN_TO_VERIFIER_ROW + (15 - row - 1) * (rowHeight + MARGIN_BETWEEN_ROWS)).toFloat()
+        val bottom = top + 2 * choiceRadius
+        return Pair(top, bottom)
+    }
+
+    fun getXColumnBoundriesFromColumnIndex(column: Int, offset:Int = 0): Pair<Float, Float>{
+        val left = offset + column * (spaceBetweenColors + 2 * choiceRadius) + spaceBetweenColors
+        val right = left + 2 * choiceRadius
+        return Pair(left, right)
+    }
+
 }

@@ -14,6 +14,9 @@ interface GamePresenter{
     fun attachView(view: GameView)
     fun detachView()
     fun joinGame()
+    fun onNextSecretColor(index: Int)
+    fun onPrevSecretColor(index: Int)
+    fun onSecretAccepted()
 }
 
 class GamePresenterImpl(private val host: String, private val gameName: String, private val gameId: String, private val playerName: String): GamePresenter{
@@ -21,6 +24,8 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
     private var view: GameView? = null
     private var protocol: Protocol? = null
     private var timerTask: TimerTask? = null
+    private val selectionLogic = SelectionLogic()
+    private lateinit var player: Player
 
     override fun attachView(view: GameView) {
         this.view = view
@@ -36,7 +41,6 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
 
     override fun joinGame() {
         Log.d(GamePresenter::class.java.simpleName, "Joining game named: $gameName")
-        view?.showWaitingProgress()
         protocol?.runInBackground(
             task = joinGameTask(),
             onResult = onJoinedGame()
@@ -51,20 +55,21 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
 
     private fun onJoinedGame() = {
         player: Player ->
+            this.player = player
             view?.apply {
                 displayJoinedPlayer(player)
                 if(player.role == Role.VERIFIER){
-                    val colorArr = getCombinationColorArr()
-                    waitForGuesser(player, colorArr)
+                    displayVerifierBoard()
                 }
                 else{
                     waitForVerifier(player)
                 }
             }
-            keepAlive(player)
+            Unit.apply {  }
     }
 
     private fun waitForVerifier(player: Player){
+        view?.showWaitingProgress()
         protocol?.runInBackground(
             task = waitForVerifierTask(player),
             onResult = onVerifierArrived()
@@ -73,6 +78,7 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
     }
 
     private fun waitForGuesser(player: Player, combinationArr: Array<Color>){
+        view?.showWaitingProgress()
         protocol?.runInBackground(
             task = waitForGuesserTask(player, combinationArr),
             onResult = onGuesserArrived()
@@ -100,7 +106,7 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
                 displayGuesserBoard()
             } ?: throw IllegalStateException("View not initialized. Did you forgot to call attachView?")
         Log.d(GamePresenter::class.java.simpleName, "Verifier arrived")
-        Unit.also {  }
+        keepAlive(player)
     }
 
     private fun onGuesserArrived() = {
@@ -108,9 +114,8 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
             view?.apply {
                 informOpponentJoinedGame(opponent)
                 hideWaitingProgress()
-                displayVerifierBoard()
             }?: throw IllegalStateException("View not initialized. Did you forgot to call attachView?")
-        Unit.apply {  }
+        keepAlive(player)
     }
 
 
@@ -128,5 +133,32 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
 
     private fun onOpponentLeftGame(opponent: Player) {
         view?.informOpponentLeftGame(opponent)
+    }
+
+
+    private fun onSecretColorChanged(index: Int, selectColor: (Int) -> Boolean){
+        val allSelected = selectColor(index)
+        view?.apply{
+            displaySecretCombination(selectionLogic.secretEnumsToPresentation())
+            if(allSelected){
+                displayAcceptSecretCombination()
+            }
+            else{
+                hideAcceptSecretCombination()
+            }
+        }
+    }
+
+    override fun onNextSecretColor(index: Int){
+        onSecretColorChanged(index, selectionLogic::onNextSecretColor)
+    }
+
+    override fun onPrevSecretColor(index: Int){
+        onSecretColorChanged(index, selectionLogic::onPrevSecretColor)
+    }
+
+    override fun onSecretAccepted() {
+        val colorArr = selectionLogic.getSecretArrayOfColors()
+        waitForGuesser(player, colorArr)
     }
 }

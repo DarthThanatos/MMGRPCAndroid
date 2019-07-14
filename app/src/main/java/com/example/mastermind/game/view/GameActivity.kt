@@ -1,5 +1,6 @@
 package com.example.mastermind.game.view
 
+import android.content.res.Resources
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -12,7 +13,6 @@ import com.example.mastermind.util.USER_NAME_KEY
 import com.example.mastermind.game.presenter.GamePresenter
 import com.example.mastermind.game.presenter.GamePresenterImpl
 import kotlinx.android.synthetic.main.activity_game.*
-import server.Color
 import server.Player
 
 interface GameView{
@@ -23,12 +23,26 @@ interface GameView{
     fun informOpponentJoinedGame(opponent: Player)
     fun displayGuesserBoard()
     fun displayVerifierBoard()
-    fun getCombinationColorArr(): Array<Color>
+    fun presenter(): GamePresenter?
+    fun displaySecretCombination(combination: Array<Int>)
+    fun displayAcceptSecretCombination()
+    fun hideAcceptSecretCombination()
+    fun displayAcceptGuessedCombination()
+}
+
+interface GameBoardProvider{
+
+    fun config(): GameDisplayConfig
+    fun refresh()
+    fun presenter(): GamePresenter?
+    fun resources(): Resources
+    fun touchOffset(): Int
 }
 
 class GameActivity : AppCompatActivity(), GameView {
 
     private var presenter: GamePresenter? = null
+    override fun presenter(): GamePresenter? = presenter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,15 +78,14 @@ class GameActivity : AppCompatActivity(), GameView {
         Toast.makeText(this, "Your opponent: ${opponent.playerName} has joined the room", Toast.LENGTH_LONG).show()
     }
 
-    override fun getCombinationColorArr()
-        = arrayOf(Color.BLUE, Color.RED, Color.GREEN, Color.RED)
-
     override fun displayGuesserBoard() {
         guesserBoardView.visibility = View.VISIBLE
+        guesserBoardView.activate()
     }
 
     override fun displayVerifierBoard() {
         verifierBoardView.visibility = View.VISIBLE
+        verifierBoardView.activate()
     }
 
     override fun showWaitingProgress() {
@@ -81,5 +94,21 @@ class GameActivity : AppCompatActivity(), GameView {
 
     override fun hideWaitingProgress() {
         waiting_progress_bar.visibility = View.INVISIBLE
+    }
+
+    override fun displayAcceptSecretCombination() {
+        verifierBoardView.showAcceptSecretCombinationView()
+    }
+
+    override fun hideAcceptSecretCombination() {
+        verifierBoardView.hideAcceptSecretCombinationView()
+    }
+
+    override fun displayAcceptGuessedCombination() {
+
+    }
+
+    override fun displaySecretCombination(combination: Array<Int>) {
+        verifierBoardView.updateSecretElements(combination)
     }
 }
