@@ -13,22 +13,45 @@ interface Verifier {
         blockingStub: GreeterGrpc.GreeterBlockingStub
     ): Player
 
-    fun subscribeForGuesses(
+    fun subscribeForGuessesConsoleBased(
         player: Player,
         asynchBlock: GreeterGrpc.GreeterStub,
         blockingStub: GreeterGrpc.GreeterBlockingStub,
         latch:CountDownLatch,
         interaction: (userName: String) -> Array<VerificationMarker>
     )
+
+    fun subsribeForGuesses(
+        player: Player,
+        asynchBlock: GreeterGrpc.GreeterStub,
+        onVerifyPhase: (Combination) -> Unit,
+        onGameFinished: () -> Unit
+    )
 }
 
 class VerifierImpl: Verifier{
 
-
     private fun newVerification(player: Player, markers: Array<VerificationMarker>) =
         Verification.newBuilder().setPlayer(player).setFirst(markers[0]).setSecond(markers[1]).setThird(markers[2]).setFourth(markers[3]).build()
 
-    override fun subscribeForGuesses(
+    override fun subsribeForGuesses(player: Player, asynchBlock: GreeterGrpc.GreeterStub, onVerifyPhase: (Combination) -> Unit, onGameFinished: () -> Unit) {
+        asynchBlock.getGuesses(player, object: StreamObserver<Combination>{
+            override fun onNext(value: Combination) {
+                onVerifyPhase(value)
+            }
+
+            override fun onError(t: Throwable) {
+                t.printStackTrace()
+            }
+
+            override fun onCompleted() {
+                onGameFinished()
+            }
+
+        })
+    }
+
+    override fun subscribeForGuessesConsoleBased(
         player: Player,
         asynchBlock: GreeterGrpc.GreeterStub,
         blockingStub: GreeterGrpc.GreeterBlockingStub,

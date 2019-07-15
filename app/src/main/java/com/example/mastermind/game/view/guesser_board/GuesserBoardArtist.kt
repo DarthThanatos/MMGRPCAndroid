@@ -1,40 +1,34 @@
-package com.example.mastermind.game.view
+package com.example.mastermind.game.view.guesser_board
 
-import android.app.Activity
-import android.content.Context
-import android.content.res.Resources
-import android.graphics.*
-import android.graphics.Color.BLACK
-import android.util.AttributeSet
-import android.view.View
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Color.CYAN
+import android.graphics.Paint
+import android.graphics.Rect
 import com.example.mastermind.R
-import com.example.mastermind.game.presenter.GamePresenter
-import server.Color
+import com.example.mastermind.game.view.MARGIN_BETWEEN_ROWS
+import com.example.mastermind.game.view.MARGIN_FROM_BORDER
+import com.example.mastermind.game.view.MARGIN_TO_VERIFIER_ROW
 
-
-class GuesserBoardViewImpl(context: Context, attrSet: AttributeSet): View(context, attrSet), GameBoardProvider{
-
-    override fun refresh() {
-        invalidate()
-    }
+class GuesserBoardArtist (guesserBoardViewImpl: GuesserBoardViewImpl){
 
     private val paint = Paint()
-    private val screenCalculator = ScreenCalculator(context as Activity)
-    private val config = GameDisplayConfig(screenCalculator.screenWidth, screenCalculator.screenHeight)
-    override fun config(): GameDisplayConfig = config
+    private val config = guesserBoardViewImpl.config()
+    private val resources = guesserBoardViewImpl.resources
 
-    override fun resources(): Resources = resources
-    override fun touchOffset(): Int = config.widthForVerification.toInt()
-    override fun presenter(): GamePresenter? = (context as GameView).presenter()
-
-
-    private val listener = OnBoardTouchListener(this)
-
-    fun activate(){
-        setOnTouchListener(listener)
+    fun displayCurrentRow(canvas: Canvas?, currentRow: Int){
+        canvas?.apply {
+            config.apply {
+                paint.color = CYAN
+                val left = 0.0f
+                val right = screenWidth.toFloat()
+                val (top, bottom) = getYRowBoundriesFromRowIndex(currentRow)
+                drawRect(left, top, right, bottom, paint)
+            }
+        }
     }
 
-    private fun drawDividingLines(canvas: Canvas?){
+    fun drawDividingLines(canvas: Canvas?){
         canvas?.apply {
             config.apply {
                 paint.color = android.graphics.Color.BLACK
@@ -60,18 +54,21 @@ class GuesserBoardViewImpl(context: Context, attrSet: AttributeSet): View(contex
         return getTextDimension { it.height() }
     }
 
-    private fun drawGuessingArea(canvas: Canvas?){
+    fun drawGuessingArea(canvas: Canvas?, currentlyGuessedColors: IntArray, guessesSoFar: List<Array<Int>>){
         canvas?.apply {
             config.apply{
                 for (i in 0 .. 15){
                     for (j in 0 until 4){
+                        val rowIndex = 15 - i
                         paint.color = android.graphics.Color.GRAY
+                        if(rowIndex < guessesSoFar.size) paint.color = guessesSoFar[i][j]
+                        if(rowIndex == guessesSoFar.size) paint.color = currentlyGuessedColors[j]
                         val additionalSeparator = if(i >= 1) MARGIN_TO_VERIFIER_ROW - MARGIN_BETWEEN_ROWS else 0
                         val cx: Float = widthForVerification + spaceBetweenColors * (j + 1) + j * rowHeight + choiceRadius
                         val cy: Float = MARGIN_FROM_BORDER + additionalSeparator + (MARGIN_BETWEEN_ROWS + rowHeight) * i + choiceRadius
                         drawCircle(cx, cy, choiceRadius, paint)
                         if(i == 0){
-                            paint.color = BLACK
+                            paint.color = Color.BLACK
                             paint.textSize = resources.getDimensionPixelSize(R.dimen.questionMarkFontSize).toFloat()
                             drawText("?", 0, 1, cx - getQuestionMarkWidth() / 2, cy + getQuestionMarkHeight() / 2, paint)
                         }
@@ -81,7 +78,7 @@ class GuesserBoardViewImpl(context: Context, attrSet: AttributeSet): View(contex
         }
     }
 
-    private fun drawVerificationArea(canvas: Canvas?){
+    fun drawVerificationArea(canvas: Canvas?){
         canvas?.apply {
             config.apply {
                 paint.color = android.graphics.Color.BLACK
@@ -99,15 +96,4 @@ class GuesserBoardViewImpl(context: Context, attrSet: AttributeSet): View(contex
             }
         }
     }
-
-
-    override fun onDraw(canvas: Canvas?) {
-//        touchResponder?.displayCurrentRow(canvas, paint)
-        drawGuessingArea(canvas)
-        drawVerificationArea(canvas)
-        drawDividingLines(canvas)
-//        touchResponder?.displayColorSelection(canvas)
-    }
-
-
 }

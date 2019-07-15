@@ -6,10 +6,10 @@ import android.view.MotionEvent
 import android.view.View
 import kotlin.properties.Delegates
 
-class OnBoardTouchListener(private val boardProvider: GameBoardProvider): View.OnTouchListener{
+class OnBoardTouchListener(private val view: View): View.OnTouchListener{
 
     var touchableAreas by Delegates.observable(mutableListOf<TouchableArea>()) {
-        _, _, _ -> boardProvider.refresh()
+        _, _, _ -> view.invalidate()
     }
 
     interface TouchableArea{

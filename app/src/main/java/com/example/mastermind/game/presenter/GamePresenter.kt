@@ -2,11 +2,9 @@ package com.example.mastermind.game.presenter
 
 import android.util.Log
 import com.example.mastermind.game.view.GameView
+import com.example.mastermind.game.view.verification_dialog.VerificationDialogView
 import com.example.mastermind.protocol.Protocol
-import server.Color
-import server.GreeterGrpc
-import server.Player
-import server.Role
+import server.*
 import java.lang.IllegalStateException
 import java.util.*
 
@@ -16,7 +14,13 @@ interface GamePresenter{
     fun joinGame()
     fun onNextSecretColor(index: Int)
     fun onPrevSecretColor(index: Int)
+    fun onNextGuessedColor(index: Int)
+    fun onPrevGuessedColor(index: Int)
+    fun onNextVerificationColor(index: Int, verificationDialogView: VerificationDialogView)
+    fun onPrevVerificationColor(index: Int, verificationDialogView: VerificationDialogView)
     fun onSecretAccepted()
+    fun onGuessAccepted()
+    fun onVerificationAccepted()
 }
 
 class GamePresenterImpl(private val host: String, private val gameName: String, private val gameId: String, private val playerName: String): GamePresenter{
@@ -105,8 +109,7 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
                 hideWaitingProgress()
                 displayGuesserBoard()
             } ?: throw IllegalStateException("View not initialized. Did you forgot to call attachView?")
-        Log.d(GamePresenter::class.java.simpleName, "Verifier arrived")
-        keepAlive(player)
+            keepAlive(player)
     }
 
     private fun onGuesserArrived() = {
@@ -115,9 +118,31 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
                 informOpponentJoinedGame(opponent)
                 hideWaitingProgress()
             }?: throw IllegalStateException("View not initialized. Did you forgot to call attachView?")
-        keepAlive(player)
+            keepAlive(player)
+            subscribeVerifier()
     }
 
+    private fun subscribeVerifier(){
+        protocol?.runInBackground(
+            task = subscribeVerifierTask()
+        )
+    }
+
+    private fun subscribeVerifierTask() = {
+        blockingStub: GreeterGrpc.GreeterBlockingStub, asynchStub: GreeterGrpc.GreeterStub ->
+            protocol?.subsribeForGuesses(player, asynchStub, this::onVerifyPhase, this::onEndGame)
+    }
+
+    private fun onVerifyPhase(combination: Combination){
+        selectionLogic.rememberColorSequence(combination)
+        view?.apply {
+            hideWaitingProgress()
+            promptVerification(
+                selectionLogic.combinationEnumsToPresentation(combination)
+            )
+        }
+
+    }
 
     private fun keepAlive(player: Player){
         protocol?.runInBackground(
@@ -157,8 +182,92 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
         onSecretColorChanged(index, selectionLogic::onPrevSecretColor)
     }
 
+    private fun onCurrentGuessesChanged(index: Int, selectColor: (Int) -> Boolean) {
+        val allSelected = selectColor(index)
+        view?.apply{
+            displayCurrentGuessedColors(selectionLogic.currentGuessedEnumsToPresentation())
+            if(allSelected){
+                displayAcceptGuessedCombination()
+            }
+            else{
+                hideAcceptCurrentGuessedColors()
+            }
+        }
+    }
+
+    override fun onNextGuessedColor(index: Int) {
+        onCurrentGuessesChanged(index, selectionLogic::onNextGuessedColor)
+    }
+
+    override fun onPrevGuessedColor(index: Int) {
+        onCurrentGuessesChanged(index, selectionLogic::onPrevGuessedColor)
+    }
+
+    private fun onVerificationColorChanged(index: Int, verificationDialogView: VerificationDialogView, selectColor: (Int)->Boolean){
+       val allSelected = selectColor(index)
+        verificationDialogView.apply {
+            updateVerificationMarkers(selectionLogic.currentVerificationMarkersEnumsToPresentation())
+            if(allSelected){
+                showAcceptButton()
+            }
+            else{
+                hideAcceptButton()
+            }
+        }
+    }
+
+    override fun onNextVerificationColor(index: Int, verificationDialogView: VerificationDialogView) {
+        onVerificationColorChanged(index, verificationDialogView, selectionLogic::onNextVerificationMarker)
+    }
+
+    override fun onPrevVerificationColor(index: Int, verificationDialogView: VerificationDialogView) {
+        onVerificationColorChanged(index, verificationDialogView, selectionLogic::onPrevVerificationMarker)
+    }
+
     override fun onSecretAccepted() {
+        view?.apply {
+            waitForVerifierTurn()
+            showWaitingProgress()
+        }
         val colorArr = selectionLogic.getSecretArrayOfColors()
         waitForGuesser(player, colorArr)
+    }
+
+    override fun onGuessAccepted() {
+        selectionLogic.rememberCurrentGuessedColorSequence()
+        selectionLogic.clearCurrentGuesses()
+        view?.apply {
+            showWaitingProgress()
+            waitForGuesserTurn()
+        }
+        protocol?.runInBackground(
+            task = sendGuessesTask(),
+            onResult = onVerificationArrived()
+        )
+    }
+
+    override fun onVerificationAccepted() {
+        println("verification accepted")
+    }
+
+    private fun sendGuessesTask() = {
+        blockingStub: GreeterGrpc.GreeterBlockingStub, asynchStub: GreeterGrpc.GreeterStub ->
+            protocol?.guess(selectionLogic.getCurrentGuessedArrayOfColors(), player, blockingStub)
+                ?: throw IllegalStateException("Protocol not initialized. Did you forgot to call attachView?")
+    }
+
+    private fun onVerificationArrived() = {
+        verification: Verification ->
+            selectionLogic.rememberVerification(verification)
+
+            view?.apply {
+                hideWaitingProgress()
+            }
+            Unit.apply {  }
+
+    }
+
+    private fun onEndGame(){
+
     }
 }

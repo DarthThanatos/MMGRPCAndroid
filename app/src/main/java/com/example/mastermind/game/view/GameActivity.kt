@@ -6,12 +6,10 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import com.example.mastermind.R
-import com.example.mastermind.util.GAME_ID_KEY
-import com.example.mastermind.util.GAME_NAME_KEY
-import com.example.mastermind.util.HOST_NAME_KEY
-import com.example.mastermind.util.USER_NAME_KEY
 import com.example.mastermind.game.presenter.GamePresenter
 import com.example.mastermind.game.presenter.GamePresenterImpl
+import com.example.mastermind.game.view.verification_dialog.VerificationDialog
+import com.example.mastermind.util.*
 import kotlinx.android.synthetic.main.activity_game.*
 import server.Player
 
@@ -27,11 +25,15 @@ interface GameView{
     fun displaySecretCombination(combination: Array<Int>)
     fun displayAcceptSecretCombination()
     fun hideAcceptSecretCombination()
+    fun displayCurrentGuessedColors(combination: Array<Int>)
     fun displayAcceptGuessedCombination()
+    fun hideAcceptCurrentGuessedColors()
+    fun promptVerification(combination: Array<Int>)
+    fun waitForVerifierTurn()
+    fun waitForGuesserTurn()
 }
 
 interface GameBoardProvider{
-
     fun config(): GameDisplayConfig
     fun refresh()
     fun presenter(): GamePresenter?
@@ -96,6 +98,10 @@ class GameActivity : AppCompatActivity(), GameView {
         waiting_progress_bar.visibility = View.INVISIBLE
     }
 
+    override fun displaySecretCombination(combination: Array<Int>) {
+        verifierBoardView.updateSecretElements(combination)
+    }
+
     override fun displayAcceptSecretCombination() {
         verifierBoardView.showAcceptSecretCombinationView()
     }
@@ -104,11 +110,28 @@ class GameActivity : AppCompatActivity(), GameView {
         verifierBoardView.hideAcceptSecretCombinationView()
     }
 
-    override fun displayAcceptGuessedCombination() {
-
+    override fun displayCurrentGuessedColors(combination: Array<Int>) {
+        guesserBoardView.updateCurrentGuessedCombination(combination)
     }
 
-    override fun displaySecretCombination(combination: Array<Int>) {
-        verifierBoardView.updateSecretElements(combination)
+    override fun displayAcceptGuessedCombination() {
+        guesserBoardView.showAcceptSecretCombinationView()
+    }
+
+    override fun hideAcceptCurrentGuessedColors() {
+        guesserBoardView.hideAcceptSecretCombinationView()
+    }
+
+    override fun waitForVerifierTurn() {
+        verifierBoardView.waitForVerifierTurn()
+    }
+
+    override fun waitForGuesserTurn() {
+        guesserBoardView.waitForGuesserTurn()
+    }
+
+    override fun promptVerification(combination: Array<Int>) {
+        val newFragmentDialog = VerificationDialog(presenter, combination)
+        newFragmentDialog.show(supportFragmentManager, VERIFIER_DIALOG_TAG)
     }
 }

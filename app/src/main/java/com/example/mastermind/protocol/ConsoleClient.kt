@@ -69,7 +69,7 @@ internal constructor(private val channel: ManagedChannel):
             println("Guesser has arrived: ${opponent.playerName}, ${opponent.playerId}, ${opponent.role}, ${opponent.gameId}")
             val latch = CountDownLatch(1)
             val verifyLogMsg = "please type a 4-letter combination of verification markers"
-            client.subscribeForGuesses(player, client.asynchStub, client.blockingStub, latch, {userName -> client.getVerificationCombination(userName, verifyLogMsg)})
+            client.subscribeForGuessesConsoleBased(player, client.asynchStub, client.blockingStub, latch, { userName -> client.getVerificationCombination(userName, verifyLogMsg)})
             latch.await()
         }
 
