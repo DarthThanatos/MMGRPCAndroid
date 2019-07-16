@@ -91,7 +91,6 @@ class VerifierImpl: Verifier{
         })
     }
 
-
     override fun waitForGuesser(
         combinationArray: Array<Color>,
         player: Player,

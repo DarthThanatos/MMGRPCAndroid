@@ -1,7 +1,6 @@
 package com.example.mastermind.game.view
 
 import android.content.res.Resources
-import android.media.AudioAttributes
 import android.media.SoundPool
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -146,7 +145,6 @@ class GameActivity : AppCompatActivity(), GameView {
         val newFragmentDialog = VerificationDialog(presenter, combination)
         newFragmentDialog.show(supportFragmentManager, VERIFIER_DIALOG_TAG)
     }
-
 
 
     private fun playMusic(musicId: Int){

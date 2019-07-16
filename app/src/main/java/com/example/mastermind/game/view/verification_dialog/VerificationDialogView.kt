@@ -42,7 +42,7 @@ class VerificationDialogView(context: Context, attributeSet: AttributeSet): View
         invalidate()
     }
 
-    val listener = OnBoardTouchListener(this)
+    private val listener = OnBoardTouchListener(this)
     private val phases = VerificationDialogPhases(this)
 
     fun activate() {
