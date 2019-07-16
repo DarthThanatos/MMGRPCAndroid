@@ -13,14 +13,14 @@ class VerifierBoardPhases(private val boardProvider: GameBoardProvider){
             val centerOfColorSelector =
                 CenterOfColorSelector(boardProvider, 0, j, 0)
             val leftColorSelector = SecretCombinationLeftColorSelector(
-                size.toInt(),
+                { size.toInt() },
                 boardProvider.resources(),
                 centerOfColorSelector,
                 boardProvider.presenter(),
                 j
             )
             val rightColorSelector = SecretCombinationRightColorSelector(
-                size.toInt(),
+                { size.toInt() },
                 boardProvider.resources(),
                 centerOfColorSelector,
                 boardProvider.presenter(),

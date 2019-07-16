@@ -23,12 +23,19 @@ import kotlin.reflect.KProperty
 class VerificationDialogView(context: Context, attributeSet: AttributeSet): View(context, attributeSet){
 
     var presenter: GamePresenter? = null
+    var verificationDialog: VerificationDialog? = null
 
     private val config = VerificationDialogConfig(this)
     fun config() = config
 
     var combinationArray: Array<Int> by Delegates.observable(arrayOf(Color.GRAY, Color.GRAY, Color.GRAY, Color.GRAY), this::onFieldChanged)
     var verificationMarkersColors by Delegates.observable(intArrayOf(Color.GRAY, Color.GRAY, Color.GRAY, Color.GRAY), this::onFieldChanged)
+
+    fun clearVerificationMarkers(){
+        for(j in 0 until 4){
+            verificationMarkersColors[j] = Color.GRAY
+        }
+    }
 
     @Suppress("UNUSED_PARAMETER")
     private fun <T> onFieldChanged(prop: KProperty<*>, old: T, new: T){
@@ -38,7 +45,7 @@ class VerificationDialogView(context: Context, attributeSet: AttributeSet): View
     val listener = OnBoardTouchListener(this)
     private val phases = VerificationDialogPhases(this)
 
-    init {
+    fun activate() {
         setOnTouchListener(listener)
         listener.touchableAreas = phases.verificationInit()
     }
@@ -61,6 +68,7 @@ class VerificationDialogView(context: Context, attributeSet: AttributeSet): View
         artist.apply {
             drawCombination(canvas, combinationArray)
             drawInput(canvas, verificationMarkersColors)
+            drawInputRect(canvas)
         }
         for(touchableArea in listener.touchableAreas){
             touchableArea.display(canvas)
@@ -75,8 +83,9 @@ class VerificationDialog(private val presenter: GamePresenter?, private val comb
         val view = inflater.inflate(R.layout.verification_dialog, null)
         view.verificationDialogView.presenter = presenter
         view.verificationDialogView.combinationArray  = combination
-        dialog.setCanceledOnTouchOutside(false)
-//        dialog.window.decorView.setOnTouchListener(view.verificationDialogView.listener)
+        view.verificationDialogView.verificationDialog = this
+        view.verificationDialogView.activate()
+        view.verificationDialogView.clearVerificationMarkers()
         return view
     }
 
@@ -84,7 +93,10 @@ class VerificationDialog(private val presenter: GamePresenter?, private val comb
         return activity?.let{
             val builder = AlertDialog.Builder(it)
             builder.setView(setupView(requireActivity().layoutInflater))
-            builder.create()
+            val dialog = builder.create()
+            dialog.setCanceledOnTouchOutside(false)
+            dialog.setCancelable(false)
+            dialog
         } ?: throw IllegalStateException("Activity cannot be null")
     }
 

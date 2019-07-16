@@ -1,6 +1,8 @@
 package com.example.mastermind.game.view
 
 import android.content.res.Resources
+import android.media.AudioAttributes
+import android.media.SoundPool
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
@@ -29,8 +31,10 @@ interface GameView{
     fun displayAcceptGuessedCombination()
     fun hideAcceptCurrentGuessedColors()
     fun promptVerification(combination: Array<Int>)
-    fun waitForVerifierTurn()
+    fun waitForVerifierTurn(guessesSoFar: List<Array<Int>>, verificationsSoFar: List<Array<Int>>)
     fun waitForGuesserTurn()
+    fun onGuesserTurn(guessesSoFar: List<Array<Int>>, verificationsSoFar: List<Array<Int>>)
+    fun informAboutGameResult(title: String, msg: String, musicId: Int)
 }
 
 interface GameBoardProvider{
@@ -45,6 +49,8 @@ class GameActivity : AppCompatActivity(), GameView {
 
     private var presenter: GamePresenter? = null
     override fun presenter(): GamePresenter? = presenter
+
+    private var soundPool: SoundPool? = SoundPool.Builder().setMaxStreams(10).build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,6 +71,8 @@ class GameActivity : AppCompatActivity(), GameView {
     override fun onDestroy() {
         presenter?.detachView()
         presenter = null
+        soundPool?.release()
+        soundPool = null
         super.onDestroy()
     }
 
@@ -122,16 +130,37 @@ class GameActivity : AppCompatActivity(), GameView {
         guesserBoardView.hideAcceptSecretCombinationView()
     }
 
-    override fun waitForVerifierTurn() {
-        verifierBoardView.waitForVerifierTurn()
+    override fun waitForVerifierTurn(guessesSoFar: List<Array<Int>>, verificationsSoFar: List<Array<Int>>) {
+        verifierBoardView.waitForVerifierTurn(guessesSoFar, verificationsSoFar)
     }
 
     override fun waitForGuesserTurn() {
         guesserBoardView.waitForGuesserTurn()
     }
 
+    override fun onGuesserTurn(guessesSoFar: List<Array<Int>>, verificationsSoFar: List<Array<Int>>) {
+        guesserBoardView.onGuesserTurn(guessesSoFar, verificationsSoFar)
+    }
+
     override fun promptVerification(combination: Array<Int>) {
         val newFragmentDialog = VerificationDialog(presenter, combination)
         newFragmentDialog.show(supportFragmentManager, VERIFIER_DIALOG_TAG)
+    }
+
+
+
+    private fun playMusic(musicId: Int){
+        soundPool?.load(this, musicId, 1)
+        soundPool?.setOnLoadCompleteListener(object: SoundPool.OnLoadCompleteListener{
+            override fun onLoadComplete(soundPool: SoundPool?, sampleId: Int, status: Int) {
+                soundPool?.play(sampleId, 1.0f, 1.0f, 1, 0, 1f)
+            }
+        })
+    }
+
+    override fun informAboutGameResult(title: String, msg: String, musicId: Int) {
+        playMusic(musicId)
+        val newFragmentDialog = GameEndedDialog(title, msg, this::finish)
+        newFragmentDialog.show(supportFragmentManager, GAME_ENDED_DIALOG_TAG)
     }
 }

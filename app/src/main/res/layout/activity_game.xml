@@ -15,13 +15,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:id="@+id/verifierBoardView"
-                android:visibility="invisible"/>
+                android:visibility="invisible" android:background="#A3DC39"/>
 
         <com.example.mastermind.game.view.guesser_board.GuesserBoardViewImpl
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:visibility="invisible"
-                android:id="@+id/guesserBoardView"/>
+                android:id="@+id/guesserBoardView" android:background="#FFA3DC39"/>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ProgressBar

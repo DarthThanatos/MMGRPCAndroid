@@ -61,7 +61,7 @@ class GuesserBoardArtist (guesserBoardViewImpl: GuesserBoardViewImpl){
                     for (j in 0 until 4){
                         val rowIndex = 15 - i
                         paint.color = android.graphics.Color.GRAY
-                        if(rowIndex < guessesSoFar.size) paint.color = guessesSoFar[i][j]
+                        if(rowIndex < guessesSoFar.size) paint.color = guessesSoFar[rowIndex][j]
                         if(rowIndex == guessesSoFar.size) paint.color = currentlyGuessedColors[j]
                         val additionalSeparator = if(i >= 1) MARGIN_TO_VERIFIER_ROW - MARGIN_BETWEEN_ROWS else 0
                         val cx: Float = widthForVerification + spaceBetweenColors * (j + 1) + j * rowHeight + choiceRadius
@@ -78,13 +78,16 @@ class GuesserBoardArtist (guesserBoardViewImpl: GuesserBoardViewImpl){
         }
     }
 
-    fun drawVerificationArea(canvas: Canvas?){
+    fun drawVerificationArea(canvas: Canvas?, verificationsSoFar: List<Array<Int>>){
         canvas?.apply {
             config.apply {
-                paint.color = android.graphics.Color.BLACK
                 for (i in 1 until 16){
                     for (m in 0 until 2){
                         for (n in 0 until 2) {
+                            val j = (1 - m) * 2 + (1 - n)
+                            val row = 15 - i
+                            paint.color = android.graphics.Color.BLACK
+                            if(row < verificationsSoFar.size) paint.color = verificationsSoFar[row][j]
                             val cx = (horizontalBorderMargin
                                     + n * (horizontalMarkersGap + 2 * verificationMarkerRadius) + verificationMarkerRadius)
                             val cy = (MARGIN_FROM_BORDER + MARGIN_TO_VERIFIER_ROW - MARGIN_BETWEEN_ROWS + (MARGIN_BETWEEN_ROWS + rowHeight) * i + verticalBorderMargin

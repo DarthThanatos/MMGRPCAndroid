@@ -7,11 +7,9 @@ class VerificationDialogPhases (private val view: VerificationDialogView){
 
     fun verificationInit(): MutableList<OnBoardTouchListener.TouchableArea>{
         val touchableAreas = mutableListOf<OnBoardTouchListener.TouchableArea>()
-        val radius = view.config().radius()
         for (j in 0 until 4){
-            val center = view.config().choiceCenter(j)
-            val arrowSize = view.config().horizontalMarginBetweenChoices().toInt()
-            val centerOfColorSelector = VerificationDialogCenterOfColorSelector(view, center.x, center.y, radius.toInt())
+            val centerOfColorSelector = VerificationDialogCenterOfColorSelector(view, j)
+            val arrowSize = { view.config().horizontalMarginBetweenChoices().toInt() }
             val leftColorSelector = VerificationDialogLeftColorSelector(arrowSize, view.resources, centerOfColorSelector, view.presenter, j, view)
             val rightColorSelector = VerificationDialogRightColorSelector(arrowSize, view.resources, centerOfColorSelector, view.presenter, j, view)
             val compundSelector = CombinationSelector(leftColorSelector, rightColorSelector, centerOfColorSelector)

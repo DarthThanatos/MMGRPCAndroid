@@ -50,7 +50,9 @@ class VerifierBoardViewImpl(context: Context, attrSet: AttributeSet): View(conte
         listener.touchableAreas = phases.secretSpecificationWithoutAcceptView(listener.touchableAreas)
     }
 
-    fun waitForVerifierTurn(){
+    fun waitForVerifierTurn(guessesSoFar: List<Array<Int>>, verificationsSoFar: List<Array<Int>>){
+        this.guessedColorsSoFar = guessesSoFar
+        this.verificationsSoFar = verificationsSoFar
         listener.touchableAreas = phases.waitPhase()
     }
 

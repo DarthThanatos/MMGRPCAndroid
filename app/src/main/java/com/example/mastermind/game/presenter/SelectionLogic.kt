@@ -57,7 +57,6 @@ class SelectionLogic {
     fun onNextSecretColor(index: Int)
         = onNextColor(index, colorOrder, secretCombination, currentColor) {currentColor = it}
 
-
     fun onPrevSecretColor(index: Int)
         = onPrevColor(index, colorOrder, secretCombination, currentColor) {currentColor = it}
 
@@ -94,9 +93,6 @@ class SelectionLogic {
     fun currentVerificationMarkersEnumsToPresentation() =
         currentVerificationMarkers.map { enumToVerificationColor.getValue(it) }.toTypedArray()
 
-    fun verificationEnumsToPresentation(verification: Verification) =
-        verificationToVerificationMarkersArray(verification).map { enumToVerificationColor.getValue(it.ordinal)}.toTypedArray()
-
     fun verificationsSoFarToPresentation() =
         verificationsSoFar.map { it.map { enum -> enumToVerificationColor.getValue(enum.ordinal) }.toTypedArray() }
 
@@ -129,12 +125,18 @@ class SelectionLogic {
 
     fun clearCurrentVerificationMarkers(){
         currentVerificationMarker = -1
-        currentVerificationMarkers.map { -1 }
+        for (j in 0 until 4)
+            currentVerificationMarkers[j] = -1
     }
 
     fun clearCurrentGuesses(){
         currentColor = -1
-        currentGuessedColors.map { -1 }
+        for(j in 0 until 4)
+            currentGuessedColors[j] = -1
     }
 
+    fun guesserGuessed(): Boolean{
+        val lastVerification = verificationsSoFar.last()
+        return lastVerification.all { it == VerificationMarker.GOOD_PLACE_AND_COLOR }
+    }
 }

@@ -74,6 +74,7 @@ class ExistingGamesActivity : AppCompatActivity(), ExisitingGamesView, JoinGameD
         gameIntent.putExtra(USER_NAME_KEY, userName)
         gameIntent.putExtra(GAME_ID_KEY, gameId.toString())
         startActivity(gameIntent)
+        finish()
     }
 
     override fun askIfShouldJoinGame(gameDescription: GameDescription) {

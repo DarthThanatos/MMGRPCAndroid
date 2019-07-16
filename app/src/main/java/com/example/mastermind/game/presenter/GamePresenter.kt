@@ -1,6 +1,7 @@
 package com.example.mastermind.game.presenter
 
 import android.util.Log
+import com.example.mastermind.R
 import com.example.mastermind.game.view.GameView
 import com.example.mastermind.game.view.verification_dialog.VerificationDialogView
 import com.example.mastermind.protocol.Protocol
@@ -41,6 +42,7 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
         timerTask?.cancel()
         timerTask = null
         protocol?.shutdown()
+        protocol = null
     }
 
     override fun joinGame() {
@@ -130,18 +132,7 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
 
     private fun subscribeVerifierTask() = {
         blockingStub: GreeterGrpc.GreeterBlockingStub, asynchStub: GreeterGrpc.GreeterStub ->
-            protocol?.subsribeForGuesses(player, asynchStub, this::onVerifyPhase, this::onEndGame)
-    }
-
-    private fun onVerifyPhase(combination: Combination){
-        selectionLogic.rememberColorSequence(combination)
-        view?.apply {
-            hideWaitingProgress()
-            promptVerification(
-                selectionLogic.combinationEnumsToPresentation(combination)
-            )
-        }
-
+            protocol?.subsribeForGuesses(player, asynchStub, this::onVerifyPhase, this::onVerifierEndGame)
     }
 
     private fun keepAlive(player: Player){
@@ -226,7 +217,10 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
 
     override fun onSecretAccepted() {
         view?.apply {
-            waitForVerifierTurn()
+            waitForVerifierTurn(
+                selectionLogic.guessesSoFarToPresentation(),
+                selectionLogic.verificationsSoFarToPresentation()
+            )
             showWaitingProgress()
         }
         val colorArr = selectionLogic.getSecretArrayOfColors()
@@ -235,7 +229,6 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
 
     override fun onGuessAccepted() {
         selectionLogic.rememberCurrentGuessedColorSequence()
-        selectionLogic.clearCurrentGuesses()
         view?.apply {
             showWaitingProgress()
             waitForGuesserTurn()
@@ -246,8 +239,39 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
         )
     }
 
+    private fun onVerifyPhase(combination: Combination){
+        selectionLogic.rememberColorSequence(combination)
+        selectionLogic.clearCurrentVerificationMarkers()
+        view?.apply {
+            hideWaitingProgress()
+            promptVerification(
+                selectionLogic.combinationEnumsToPresentation(combination)
+            )
+        }
+
+    }
+
     override fun onVerificationAccepted() {
-        println("verification accepted")
+        selectionLogic.rememberCurrentVerificationSequence()
+        sendVerification()
+        view?.apply{
+            showWaitingProgress()
+            waitForVerifierTurn(
+                selectionLogic.guessesSoFarToPresentation(),
+                selectionLogic.verificationsSoFarToPresentation()
+            )
+        }
+    }
+
+    private fun sendVerification(){
+        protocol?.runInBackground(
+            task = sendVerificationTask()
+        )
+    }
+
+    private fun sendVerificationTask() = {
+        blockingStub: GreeterGrpc.GreeterBlockingStub, asynchStub: GreeterGrpc.GreeterStub ->
+            protocol?.verify(player, selectionLogic.getCurrentVerificationMarkesArrayOfColors(), blockingStub)
     }
 
     private fun sendGuessesTask() = {
@@ -259,15 +283,47 @@ class GamePresenterImpl(private val host: String, private val gameName: String, 
     private fun onVerificationArrived() = {
         verification: Verification ->
             selectionLogic.rememberVerification(verification)
-
+            selectionLogic.clearCurrentGuesses()
             view?.apply {
                 hideWaitingProgress()
+                if(verification.endGame){
+                    onGuesserEndGame()
+                }
+                else {
+                    onGuesserTurn(
+                        selectionLogic.guessesSoFarToPresentation(),
+                        selectionLogic.verificationsSoFarToPresentation()
+                    )
+                }
             }
             Unit.apply {  }
-
     }
 
-    private fun onEndGame(){
+    private fun onGuesserEndGame(){
+        if (selectionLogic.guesserGuessed()){
+            val msg = "You guessed the secret combination and so kicked the verifier's ass!"
+            val title = "You won!"
+            view?.informAboutGameResult(title, msg, R.raw.applause)
+        }
+        else{
+            val msg = "You failed to guess the secret combination and thus your ass has been kicked, you loser!"
+            val title = "You're a complete failure!"
+            view?.informAboutGameResult(title, msg, R.raw.fail)
 
+        }
+    }
+
+    private fun onVerifierEndGame(){
+        if (selectionLogic.guesserGuessed()){
+            val msg = "The gusser guessed the secret combination and so kicked your ass!"
+            val title = "You're a complete failure!"
+            view?.informAboutGameResult(title, msg, R.raw.fail)
+        }
+        else{
+            val msg = "The guesser failed to guess the secret combination and thus their ass has been kicked, congrats!"
+            val title = "You won"
+            view?.informAboutGameResult(title, msg, R.raw.applause)
+
+        }
     }
 }

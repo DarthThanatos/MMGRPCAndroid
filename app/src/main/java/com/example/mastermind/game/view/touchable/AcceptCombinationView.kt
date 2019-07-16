@@ -3,10 +3,8 @@ package com.example.mastermind.game.view.touchable
 import android.graphics.*
 import android.view.MotionEvent
 import com.example.mastermind.R
-import com.example.mastermind.game.presenter.GamePresenter
 import com.example.mastermind.game.view.GameBoardProvider
 import com.example.mastermind.game.view.OnBoardTouchListener
-import com.example.mastermind.game.view.verification_dialog.VerificationDialogConfig
 import com.example.mastermind.game.view.verification_dialog.VerificationDialogView
 
 class AcceptSecretCombinationView(private val boardProvider: GameBoardProvider):
@@ -75,6 +73,7 @@ class AcceptVerificationMarkers(private val view: VerificationDialogView): OnBoa
     }
 
     override fun onTouched(event: MotionEvent) {
+        view.verificationDialog?.dismiss()
         view.presenter?.onVerificationAccepted()
     }
 

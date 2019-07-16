@@ -48,11 +48,25 @@ class GuesserBoardViewImpl(context: Context, attrSet: AttributeSet): View(contex
     }
 
     fun hideAcceptSecretCombinationView(){
-        listener.touchableAreas = phases.secretSpecificationWithoutAcceptView(listener.touchableAreas)
+        listener.touchableAreas = phases.guessingSpecificationWithoutAcceptView(listener.touchableAreas)
     }
 
     fun waitForGuesserTurn(){
         listener.touchableAreas = phases.waitPhase()
+    }
+
+    private fun clearGuesses(){
+        for(j in 0 until 4){
+            currentlyGuessedCombination[j] = GRAY
+        }
+    }
+
+    fun onGuesserTurn(guessesSoFar: List<Array<Int>>, verificationsSoFar: List<Array<Int>>){
+        this.guessedColorsSoFar = guessesSoFar
+        this.verificationsSoFar = verificationsSoFar
+        listener.touchableAreas = phases.guessingCombinationSpecificationPhase(guessesSoFar.size)
+        clearGuesses()
+
     }
 
     fun updateCurrentGuessedCombination(currentGuessedCombination: Array<Int>){
@@ -67,7 +81,7 @@ class GuesserBoardViewImpl(context: Context, attrSet: AttributeSet): View(contex
         artist.apply {
             displayCurrentRow(canvas, guessedColorsSoFar.size)
             drawGuessingArea(canvas, currentlyGuessedCombination, guessedColorsSoFar)
-            drawVerificationArea(canvas)
+            drawVerificationArea(canvas, verificationsSoFar)
             drawDividingLines(canvas)
         }
         for(touchableArea in listener.touchableAreas){

@@ -26,15 +26,14 @@ class VerifierBoardArtist(verifierBoardViewImpl: VerifierBoardViewImpl){
     fun drawGuessingArea(canvas: Canvas?, secretCombinationColors: IntArray, guessedColorsSoFar: List<Array<Int>>){
         canvas?.apply {
             config.apply{
-                paint.color = android.graphics.Color.GRAY
                 for (i in 0 .. 15){
                     for (j in 0 until 4){
+                        paint.color = android.graphics.Color.GRAY
+                        if(i < guessedColorsSoFar.size) paint.color = guessedColorsSoFar[i][3-j]
+                        if(i == 15) paint.color = secretCombinationColors[j]
                         val additionalSeparator = if(i == 15) MARGIN_TO_VERIFIER_ROW - MARGIN_BETWEEN_ROWS else 0
                         val cx: Float = spaceBetweenColors * (j + 1) + j * rowHeight + choiceRadius
                         val cy: Float = MARGIN_FROM_BORDER + additionalSeparator + (MARGIN_BETWEEN_ROWS + rowHeight) * i + choiceRadius
-                        if(i == 15){
-                            paint.color = secretCombinationColors[j]
-                        }
                         drawCircle(cx, cy, choiceRadius, paint)
                     }
                 }
@@ -45,10 +44,12 @@ class VerifierBoardArtist(verifierBoardViewImpl: VerifierBoardViewImpl){
     fun drawVerificationArea(canvas: Canvas?, verificationsSoFar: List<Array<Int>>){
         canvas?.apply {
             config.apply {
-                paint.color = android.graphics.Color.BLACK
                 for (i in 0 until 15){
                     for (m in 0 until 2){
                         for (n in 0 until 2) {
+                            val j = m * 2 + n
+                            paint.color = android.graphics.Color.BLACK
+                            if(i < verificationsSoFar.size) paint.color = verificationsSoFar[i][j]
                             val cx = (widthForColors + horizontalBorderMargin
                                     + n * (horizontalMarkersGap + 2 * verificationMarkerRadius) + verificationMarkerRadius)
                             val cy = (MARGIN_FROM_BORDER + (MARGIN_BETWEEN_ROWS + rowHeight) * i + verticalBorderMargin

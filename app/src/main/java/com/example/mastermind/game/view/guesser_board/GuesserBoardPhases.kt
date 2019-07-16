@@ -14,14 +14,14 @@ class GuesserBoardPhases(private val boardProvider: GameBoardProvider) {
             val centerOfColorSelector =
                 CenterOfColorSelector(boardProvider, currentRow, j, offset)
             val leftColorSelector = GuessedCombinationLeftColorSelector(
-                size.toInt(),
+                { size.toInt() },
                 boardProvider.resources(),
                 centerOfColorSelector,
                 boardProvider.presenter(),
                 j
             )
             val rightColorSelector = GuessedCombinationRightColorSelector(
-                size.toInt(),
+                { size.toInt() },
                 boardProvider.resources(),
                 centerOfColorSelector,
                 boardProvider.presenter(),
@@ -49,7 +49,7 @@ class GuesserBoardPhases(private val boardProvider: GameBoardProvider) {
     }
 
 
-    fun secretSpecificationWithoutAcceptView(touchableAreas: MutableList<OnBoardTouchListener.TouchableArea>) =
+    fun guessingSpecificationWithoutAcceptView(touchableAreas: MutableList<OnBoardTouchListener.TouchableArea>) =
         touchableAreas.filter { it !is AcceptGuessedCombination }.toMutableList()
 
     fun waitPhase() = mutableListOf<OnBoardTouchListener.TouchableArea>()

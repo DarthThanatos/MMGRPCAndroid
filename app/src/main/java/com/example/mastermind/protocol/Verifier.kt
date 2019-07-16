@@ -27,6 +27,12 @@ interface Verifier {
         onVerifyPhase: (Combination) -> Unit,
         onGameFinished: () -> Unit
     )
+
+    fun verify(
+        player: Player,
+        markers: Array<VerificationMarker>,
+        blockingStub: GreeterGrpc.GreeterBlockingStub
+    )
 }
 
 class VerifierImpl: Verifier{
@@ -49,6 +55,14 @@ class VerifierImpl: Verifier{
             }
 
         })
+    }
+
+    override fun verify(
+        player: Player,
+        markers: Array<VerificationMarker>,
+        blockingStub: GreeterGrpc.GreeterBlockingStub
+    ) {
+        println(blockingStub.verify(newVerification(player, markers)))
     }
 
     override fun subscribeForGuessesConsoleBased(
@@ -76,6 +90,7 @@ class VerifierImpl: Verifier{
 
         })
     }
+
 
     override fun waitForGuesser(
         combinationArray: Array<Color>,

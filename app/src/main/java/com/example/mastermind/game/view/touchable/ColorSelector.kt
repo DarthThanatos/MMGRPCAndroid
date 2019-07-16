@@ -12,14 +12,14 @@ import kotlin.properties.Delegates
 
 
 abstract class LeftColorSelector(
-    private val size: Int,
+    private val size: () -> Int,
     resources: Resources,
     private val centerOfColorSelector: SelectableCenterOfColorSelector
 ): OnBoardTouchListener.TouchableArea {
 
     override fun area(): Rect {
         val r = centerOfColorSelector.area()
-        return Rect(r.left - size, r.top, r.left,r.bottom)
+        return Rect(r.left - size(), r.top, r.left,r.bottom)
     }
 
     override fun display(canvas: Canvas?) {
@@ -37,7 +37,7 @@ abstract class LeftColorSelector(
 
 
 abstract class RightColorSelector (
-    private val size: Int,
+    private val size: () -> Int,
     resources: Resources,
     private val centerOfColorSelector: SelectableCenterOfColorSelector
 ): OnBoardTouchListener.TouchableArea {
@@ -46,7 +46,7 @@ abstract class RightColorSelector (
 
     override fun area(): Rect {
         val r =centerOfColorSelector.area()
-        return Rect(r.right, r.top, r.right + size, r.bottom)
+        return Rect(r.right, r.top, r.right + size(), r.bottom)
     }
 
     override fun display(canvas: Canvas?) {
@@ -62,7 +62,7 @@ abstract class RightColorSelector (
 
 
 class SecretCombinationLeftColorSelector (
-    size: Int,
+    size: () -> Int,
     resources: Resources,
     centerOfColorSelector: SelectableCenterOfColorSelector,
     private val presenter: GamePresenter?,
@@ -76,7 +76,7 @@ class SecretCombinationLeftColorSelector (
 
 
 class SecretCombinationRightColorSelector (
-    size: Int,
+    size: () -> Int,
     resources: Resources,
     centerOfColorSelector: SelectableCenterOfColorSelector,
     private val presenter: GamePresenter?,
@@ -90,7 +90,7 @@ class SecretCombinationRightColorSelector (
 
 
 class GuessedCombinationLeftColorSelector (
-    size: Int,
+    size: () -> Int,
     resources: Resources,
     centerOfColorSelector: SelectableCenterOfColorSelector,
     private val presenter: GamePresenter?,
@@ -104,7 +104,7 @@ class GuessedCombinationLeftColorSelector (
 
 
 class GuessedCombinationRightColorSelector (
-    size: Int,
+    size: () -> Int,
     resources: Resources,
     centerOfColorSelector: SelectableCenterOfColorSelector,
     private val presenter: GamePresenter?,
@@ -132,7 +132,6 @@ class CombinationSelector(
     private val children = listOf(leftColorSelector, rightColorSelector, centerOfColorSelector)
 
     override fun onTouched(event: MotionEvent) {
-        println("Touched compound")
         val centerSelected = centerOfColorSelector.area().contains(event.x.toInt(), event.y.toInt()) || centerOfColorSelector.selected
         if(!centerSelected) return
         for(child in children){
@@ -204,24 +203,27 @@ class CenterOfColorSelector (
 
 
 class VerificationDialogCenterOfColorSelector(
-    view: VerificationDialogView,
-    private val centerX: Int,
-    private val centerY: Int,
-    private val radius: Int
+    private val view: VerificationDialogView,
+    private val index: Int
 ): SelectableCenterOfColorSelector(view::invalidate){
 
-    override fun area(): Rect =
-        Rect(
-            centerX - radius,
-            centerY - radius,
-            centerX + radius,
-            centerY + radius
-        )
+    override fun area(): Rect {
+        view.config().apply {
+            val p = choiceCenter(index)
+            val r = Rect(
+                (p.x - radius()).toInt(),
+                (p.y - radius()).toInt(),
+                (p.x + radius()).toInt(),
+                (p.y + radius()).toInt()
+            )
+            return r
+        }
+    }
 }
 
 
 class VerificationDialogLeftColorSelector(
-    size: Int,
+    size: () -> Int,
     resources: Resources,
     centerOfColorSelector: SelectableCenterOfColorSelector,
     private val presenter: GamePresenter?,
@@ -237,7 +239,7 @@ class VerificationDialogLeftColorSelector(
 
 
 class VerificationDialogRightColorSelector(
-    size: Int,
+    size: () -> Int,
     resources: Resources,
     centerOfColorSelector: SelectableCenterOfColorSelector,
     private val presenter: GamePresenter?,
